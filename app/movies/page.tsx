@@ -9,6 +9,11 @@ export default function MoviePickerPage() {
   const [isPending, startTransition] = useTransition();
   const [loadingSearch, setLoadingSearch] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [currentSearchTerm, setCurrentSearchTerm] = useState("");
+
   const [randomMovie, setRandomMovie] = useState<any | null>(null);
   const [isPicking, setIsPicking] = useState(false);
 
@@ -31,15 +36,22 @@ export default function MoviePickerPage() {
     fetchSavedMovies();
   }, []);
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (!query) return;
+  // Search with Page support
+  async function executeSearch(searchTerm: string, page: number) {
+    if (!searchTerm) return;
 
     setLoadingSearch(true);
     try {
-      const res = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(query)}&apikey=8618664a`);
-      const data = await res.json();
-      setSearchResults(data.Search || []);
+      const response = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(searchTerm)}&page=${page}&apikey=8618664a`);
+      const data = await response.json();
+      
+      if (data.Response === "True") {
+        setSearchResults(data.Search || []);
+        setTotalResults(parseInt(data.totalResults) || 0);
+      } else {
+        setSearchResults([]);
+        setTotalResults(0);
+      }
     } catch (error) {
       console.error("Search error", error);
     } finally {
@@ -47,7 +59,19 @@ export default function MoviePickerPage() {
     }
   }
 
-  // Fetch detailed movie info using IMDb ID
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!query) return;
+    setCurrentSearchTerm(query);
+    setCurrentPage(1);
+    executeSearch(query, 1);
+  }
+
+  function handlePageChange(newPage: number) {
+    setCurrentPage(newPage);
+    executeSearch(currentSearchTerm, newPage);
+  }
+
   async function handleFetchDetails(imdbID: string) {
     setLoadingDetails(true);
     try {
@@ -64,10 +88,9 @@ export default function MoviePickerPage() {
   }
 
   async function handleAddMovie(movie: any) {
-    // Fetch full details first before saving so we have plot, director, etc.
     try {
-      const res = await fetch(`https://www.omdbapi.com/?i=${movie.imdbID}&apikey=8618664a`);
-      const details = await res.json();
+      const response = await fetch(`https://www.omdbapi.com/?i=${movie.imdbID}&apikey=8618664a`);
+      const details = await response.json();
 
       startTransition(async () => {
         const saveRes = await fetch("/api/movies", {
@@ -128,6 +151,8 @@ export default function MoviePickerPage() {
     }, 600);
   }
 
+  const totalPages = Math.ceil(totalResults / 10);
+
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 relative">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -145,7 +170,7 @@ export default function MoviePickerPage() {
           
           {/* Left Side: Search & Results */}
           <div className="lg:col-span-6 space-y-6">
-            <form onSubmit={handleSearch} className="flex gap-3 bg-slate-900 p-2.5 rounded-xl border border-slate-800 shadow-lg">
+            <form onSubmit={handleSearchSubmit} className="flex gap-3 bg-slate-900 p-2.5 rounded-xl border border-slate-800 shadow-lg">
               <input
                 type="text"
                 value={query}
@@ -163,47 +188,79 @@ export default function MoviePickerPage() {
             </form>
 
             <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-lg space-y-4">
-              <h2 className="text-lg font-semibold text-indigo-400">
-                Search Results ({searchResults.length})
-              </h2>
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-indigo-400">
+                  Search Results
+                </h2>
+                {totalResults > 0 && (
+                  <span className="text-xs text-slate-400">
+                    Total: {totalResults} found
+                  </span>
+                )}
+              </div>
 
               {searchResults.length === 0 ? (
                 <div className="text-center py-16 text-slate-500 space-y-2">
                   <p className="text-sm">Type a movie name above to search.</p>
                 </div>
               ) : (
-                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-                  {searchResults.map((movie: any) => (
-                    <div
-                      key={movie.imdbID}
-                      className="flex justify-between items-center p-3 bg-slate-800 rounded-lg border border-slate-700 transition-colors"
-                    >
-                      <div 
-                        onClick={() => handleFetchDetails(movie.imdbID)}
-                        className="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden"
+                <>
+                  <div className="space-y-3 max-h-[430px] overflow-y-auto pr-1">
+                    {searchResults.map((movie: any) => (
+                      <div
+                        key={movie.imdbID}
+                        className="flex justify-between items-center p-3 bg-slate-800 rounded-lg border border-slate-700 transition-colors"
                       >
-                        {movie.Poster !== "N/A" ? (
-                          <img src={movie.Poster} alt={movie.Title} className="w-12 h-16 object-cover rounded shadow" />
-                        ) : (
-                          <div className="w-12 h-16 bg-slate-700 rounded flex items-center text-[10px] text-slate-400 justify-center text-center">
-                            No Image
+                        <div 
+                          onClick={() => handleFetchDetails(movie.imdbID)}
+                          className="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden"
+                        >
+                          {movie.Poster !== "N/A" ? (
+                            <img src={movie.Poster} alt={movie.Title} className="w-12 h-16 object-cover rounded shadow" />
+                          ) : (
+                            <div className="w-12 h-16 bg-slate-700 rounded flex items-center text-[10px] text-slate-400 justify-center text-center">
+                              No Image
+                            </div>
+                          )}
+                          <div className="overflow-hidden">
+                            <h3 className="font-bold text-slate-200 text-sm truncate max-w-[180px] hover:text-indigo-300 transition-colors">{movie.Title}</h3>
+                            <p className="text-xs text-slate-400">{movie.Year} • <span className="uppercase text-[10px] bg-slate-700 px-1.5 py-0.5 rounded">{movie.Type}</span></p>
                           </div>
-                        )}
-                        <div className="overflow-hidden">
-                          <h3 className="font-bold text-slate-200 text-sm truncate max-w-[180px] hover:text-indigo-300 transition-colors">{movie.Title}</h3>
-                          <p className="text-xs text-slate-400">{movie.Year} • <span className="uppercase text-[10px] bg-slate-700 px-1.5 py-0.5 rounded">{movie.Type}</span></p>
                         </div>
+                        <button
+                          onClick={() => handleAddMovie(movie)}
+                          disabled={isPending}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 ml-2"
+                        >
+                          Add
+                        </button>
                       </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-between items-center pt-3 border-t border-slate-800">
                       <button
-                        onClick={() => handleAddMovie(movie)}
-                        disabled={isPending}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 ml-2"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1 || loadingSearch}
+                        className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-40 transition-colors border border-slate-700"
                       >
-                        Add
+                        Previous
+                      </button>
+                      <span className="text-xs text-slate-400">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages || loadingSearch}
+                        className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-40 transition-colors border border-slate-700"
+                      >
+                        Next
                       </button>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>
