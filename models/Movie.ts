@@ -1,11 +1,19 @@
-import { Schema, model, models } from "mongoose";
+import mongoose, { Schema, models, model } from "mongoose";
 
-const MovieSchema = new Schema({
-  title: { type: String, required: true },
-  genre: { type: String, required: true },
-  poster: { type: String },
-  rating: { type: Number, default: 0 },
-  watched: { type: Boolean, default: false },
-}, { timestamps: true });
+const MovieSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    genre: { type: String, required: true },
+    poster: { type: String },
+    year: { type: String },
+    director: { type: String },
+    actors: { type: String },
+    plot: { type: String },
+    runtime: { type: String },
+    imdbRating: { type: String },
+  },
+  { timestamps: true }
+);
 
-export const Movie = models.Movie || model("Movie", MovieSchema);
+const Movie = models.Movie || model("Movie", MovieSchema);
+export default Movie;

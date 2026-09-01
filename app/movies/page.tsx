@@ -12,6 +12,10 @@ export default function MoviePickerPage() {
   const [randomMovie, setRandomMovie] = useState<any | null>(null);
   const [isPicking, setIsPicking] = useState(false);
 
+  // Movie Details Modal state
+  const [selectedMovieDetail, setSelectedMovieDetail] = useState<any | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
   useEffect(() => {
     async function fetchSavedMovies() {
       try {
@@ -43,30 +47,56 @@ export default function MoviePickerPage() {
     }
   }
 
+  // Fetch detailed movie info using IMDb ID
+  async function handleFetchDetails(imdbID: string) {
+    setLoadingDetails(true);
+    try {
+      const response = await fetch(`https://www.omdbapi.com/?i=${imdbID}&apikey=8618664a`);
+      const data = await response.json();
+      if (data.Response === "True") {
+        setSelectedMovieDetail(data);
+      }
+    } catch (error) {
+      console.error("Details fetch error", error);
+    } finally {
+      setLoadingDetails(false);
+    }
+  }
+
   async function handleAddMovie(movie: any) {
-    startTransition(async () => {
-      try {
-        const res = await fetch("/api/movies", {
+    // Fetch full details first before saving so we have plot, director, etc.
+    try {
+      const res = await fetch(`https://www.omdbapi.com/?i=${movie.imdbID}&apikey=8618664a`);
+      const details = await res.json();
+
+      startTransition(async () => {
+        const saveRes = await fetch("/api/movies", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            title: `${movie.Title} (${movie.Year})`,
-            genre: movie.Type || "Movie",
-            poster: movie.Poster !== "N/A" ? movie.Poster : "",
+            title: details.Title || movie.Title,
+            year: details.Year || movie.Year,
+            genre: details.Genre || movie.Type || "Movie",
+            poster: details.Poster !== "N/A" ? details.Poster : "",
+            director: details.Director || "N/A",
+            actors: details.Actors || "N/A",
+            plot: details.Plot || "N/A",
+            runtime: details.Runtime || "N/A",
+            imdbRating: details.imdbRating || "N/A",
           }),
         });
 
-        if (res.ok) {
-          const newMovie = await res.json();
+        if (saveRes.ok) {
+          const newMovie = await saveRes.json();
           setSavedMovies((prev) => {
             if (prev.some((m) => m._id === newMovie._id)) return prev;
             return [newMovie, ...prev];
           });
         }
-      } catch (error) {
-        console.error("Add movie error", error);
-      }
-    });
+      });
+    } catch (error) {
+      console.error("Add movie error", error);
+    }
   }
 
   async function handleDeleteMovie(id: string) {
@@ -105,9 +135,9 @@ export default function MoviePickerPage() {
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tight text-white">
-            Movie Picker
+            CineVault Movie Picker
           </h1>
-          <p className="text-slate-400 text-sm">Search movies and pick what to watch from your collection.</p>
+          <p className="text-slate-400 text-sm">Search movies from OMDb on the left and pick what to watch from your collection on the right.</p>
         </div>
 
         {/* Main Split Layout */}
@@ -148,7 +178,10 @@ export default function MoviePickerPage() {
                       key={movie.imdbID}
                       className="flex justify-between items-center p-3 bg-slate-800 rounded-lg border border-slate-700 transition-colors"
                     >
-                      <div className="flex items-center gap-3">
+                      <div 
+                        onClick={() => handleFetchDetails(movie.imdbID)}
+                        className="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden"
+                      >
                         {movie.Poster !== "N/A" ? (
                           <img src={movie.Poster} alt={movie.Title} className="w-12 h-16 object-cover rounded shadow" />
                         ) : (
@@ -157,14 +190,14 @@ export default function MoviePickerPage() {
                           </div>
                         )}
                         <div className="overflow-hidden">
-                          <h3 className="font-bold text-slate-200 text-sm truncate max-w-[180px]">{movie.Title}</h3>
+                          <h3 className="font-bold text-slate-200 text-sm truncate max-w-[180px] hover:text-indigo-300 transition-colors">{movie.Title}</h3>
                           <p className="text-xs text-slate-400">{movie.Year} • <span className="uppercase text-[10px] bg-slate-700 px-1.5 py-0.5 rounded">{movie.Type}</span></p>
                         </div>
                       </div>
                       <button
                         onClick={() => handleAddMovie(movie)}
                         disabled={isPending}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 ml-2"
                       >
                         Add
                       </button>
@@ -178,7 +211,6 @@ export default function MoviePickerPage() {
           {/* Right Side: Saved Movies & Random Picker Button */}
           <div className="lg:col-span-6 space-y-4">
             
-            {/* Pick Random Movie Button */}
             {savedMovies.length > 0 && (
               <button
                 onClick={handlePickRandomMovie}
@@ -221,9 +253,18 @@ export default function MoviePickerPage() {
                         <div className="overflow-hidden">
                           <h3 className="font-bold text-slate-100 text-sm truncate max-w-[200px] sm:max-w-[280px]">{movie.title}</h3>
                           <p className="text-xs text-slate-400 mt-1">Genre: <span className="text-indigo-300">{movie.genre}</span></p>
-                          <span className="inline-block mt-2 text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded">
-                            Saved in Vault
-                          </span>
+                          <div className="flex gap-2 mt-2">
+                            {movie.imdbRating && (
+                              <span className="text-[10px] bg-amber-950/60 text-amber-300 border border-amber-800/50 px-2 py-0.5 rounded">
+                                IMDb: {movie.imdbRating}
+                              </span>
+                            )}
+                            {movie.runtime && (
+                              <span className="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded">
+                                {movie.runtime}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -251,7 +292,6 @@ export default function MoviePickerPage() {
       {randomMovie && (
         <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-50">
           <div className="bg-slate-900 border border-slate-700 p-6 sm:p-8 rounded-2xl max-w-md w-full shadow-2xl text-center space-y-6 relative">
-            
             <button
               onClick={() => setRandomMovie(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors text-sm font-bold"
@@ -290,7 +330,59 @@ export default function MoviePickerPage() {
                 Let's Watch
               </button>
             </div>
+          </div>
+        </div>
+      )}
 
+      {/* Movie Details Modal */}
+      {selectedMovieDetail && (
+        <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-700 p-6 sm:p-8 rounded-2xl max-w-lg w-full shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedMovieDetail(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors text-sm font-bold"
+            >
+              X
+            </button>
+
+            <div className="flex gap-4 items-start">
+              {selectedMovieDetail.Poster !== "N/A" ? (
+                <img src={selectedMovieDetail.Poster} alt={selectedMovieDetail.Title} className="w-28 h-40 object-cover rounded-xl shadow-lg border border-slate-700 flex-shrink-0" />
+              ) : (
+                <div className="w-28 h-40 bg-slate-800 rounded-xl flex items-center text-slate-500 text-xs justify-center flex-shrink-0">
+                  No Poster
+                </div>
+              )}
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-slate-100">{selectedMovieDetail.Title}</h3>
+                <p className="text-xs text-slate-400">{selectedMovieDetail.Year} • {selectedMovieDetail.Runtime} • {selectedMovieDetail.Rated}</p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {selectedMovieDetail.Genre?.split(", ").map((g: string, i: number) => (
+                    <span key={i} className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-800/50 px-2 py-0.5 rounded">
+                      {g}
+                    </span>
+                  ))}
+                </div>
+                {selectedMovieDetail.imdbRating && (
+                  <div className="pt-1 text-xs text-amber-300 font-semibold">
+                    IMDb Rating: {selectedMovieDetail.imdbRating} / 10
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3 text-sm border-t border-slate-800 pt-4 text-slate-300">
+              <p><strong className="text-slate-400">Plot:</strong> {selectedMovieDetail.Plot}</p>
+              <p><strong className="text-slate-400">Director:</strong> {selectedMovieDetail.Director}</p>
+              <p><strong className="text-slate-400">Cast:</strong> {selectedMovieDetail.Actors}</p>
+            </div>
+
+            <button
+              onClick={() => setSelectedMovieDetail(null)}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-bold transition-colors text-sm shadow-lg"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
