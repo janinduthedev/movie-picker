@@ -105,9 +105,9 @@ export default function MoviePickerPage() {
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tight text-white">
-            CineVault Movie Picker
+            Movie Picker
           </h1>
-          <p className="text-slate-400 text-sm">Search movies from OMDb on the left and pick what to watch from your collection on the right.</p>
+          <p className="text-slate-400 text-sm">Search movies and pick what to watch from your collection.</p>
         </div>
 
         {/* Main Split Layout */}
