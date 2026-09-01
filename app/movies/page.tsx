@@ -9,7 +9,6 @@ export default function MoviePickerPage() {
   const [isPending, startTransition] = useTransition();
   const [loadingSearch, setLoadingSearch] = useState(false);
 
-  // Random Picker සඳහා අවශ්‍ය states
   const [randomMovie, setRandomMovie] = useState<any | null>(null);
   const [isPicking, setIsPicking] = useState(false);
 
@@ -86,14 +85,12 @@ export default function MoviePickerPage() {
     });
   }
 
-  // අහඹු ලෙස මූවි එකක් තෝරන ෆන්ෂන් එක
   function handlePickRandomMovie() {
     if (savedMovies.length === 0) return;
     
     setIsPicking(true);
     setRandomMovie(null);
 
-    // පොඩි ඇනිමේෂන් ලුක් එකක් දෙන්න ටයිමර් එකක් පාවිච්චි කරමු
     setTimeout(() => {
       const randomIndex = Math.floor(Math.random() * savedMovies.length);
       setRandomMovie(savedMovies[randomIndex]);
@@ -107,8 +104,8 @@ export default function MoviePickerPage() {
         
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
-            🎬 CineVault Movie Picker
+          <h1 className="text-4xl font-bold tracking-tight text-white">
+            CineVault Movie Picker
           </h1>
           <p className="text-slate-400 text-sm">Search movies from OMDb on the left and pick what to watch from your collection on the right.</p>
         </div>
@@ -118,7 +115,7 @@ export default function MoviePickerPage() {
           
           {/* Left Side: Search & Results */}
           <div className="lg:col-span-6 space-y-6">
-            <form onSubmit={handleSearch} className="flex gap-3 bg-slate-900 p-2.5 rounded-2xl border border-slate-800 shadow-xl">
+            <form onSubmit={handleSearch} className="flex gap-3 bg-slate-900 p-2.5 rounded-xl border border-slate-800 shadow-lg">
               <input
                 type="text"
                 value={query}
@@ -129,20 +126,19 @@ export default function MoviePickerPage() {
               <button
                 type="submit"
                 disabled={loadingSearch}
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 text-sm"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50 text-sm"
               >
                 {loadingSearch ? "Searching..." : "Search"}
               </button>
             </form>
 
-            <div className="bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
-              <h2 className="text-lg font-semibold text-purple-300 flex items-center gap-2">
-                <span>⚡</span> Search Results ({searchResults.length})
+            <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-lg space-y-4">
+              <h2 className="text-lg font-semibold text-indigo-400">
+                Search Results ({searchResults.length})
               </h2>
 
               {searchResults.length === 0 ? (
                 <div className="text-center py-16 text-slate-500 space-y-2">
-                  <p className="text-3xl">🔍</p>
                   <p className="text-sm">Type a movie name above to search.</p>
                 </div>
               ) : (
@@ -150,13 +146,13 @@ export default function MoviePickerPage() {
                   {searchResults.map((movie: any) => (
                     <div
                       key={movie.imdbID}
-                      className="flex justify-between items-center p-3 bg-slate-800/60 hover:bg-slate-800 rounded-xl border border-slate-700/50 transition-all"
+                      className="flex justify-between items-center p-3 bg-slate-800 rounded-lg border border-slate-700 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         {movie.Poster !== "N/A" ? (
-                          <img src={movie.Poster} alt={movie.Title} className="w-12 h-16 object-cover rounded-lg shadow" />
+                          <img src={movie.Poster} alt={movie.Title} className="w-12 h-16 object-cover rounded shadow" />
                         ) : (
-                          <div className="w-12 h-16 bg-slate-700 rounded-lg flex items-center text-[10px] text-slate-400 justify-center text-center">
+                          <div className="w-12 h-16 bg-slate-700 rounded flex items-center text-[10px] text-slate-400 justify-center text-center">
                             No Image
                           </div>
                         )}
@@ -168,9 +164,9 @@ export default function MoviePickerPage() {
                       <button
                         onClick={() => handleAddMovie(movie)}
                         disabled={isPending}
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
                       >
-                        + Add
+                        Add
                       </button>
                     </div>
                   ))}
@@ -187,25 +183,24 @@ export default function MoviePickerPage() {
               <button
                 onClick={handlePickRandomMovie}
                 disabled={isPicking}
-                className="w-full bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-indigo-500 text-white font-bold py-3.5 px-6 rounded-2xl shadow-xl shadow-pink-600/20 transition-all flex items-center justify-center gap-2 text-base active:scale-[0.99]"
+                className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg transition-colors text-base"
               >
-                <span>🎲</span> {isPicking ? "Picking a movie..." : "Pick a Movie For Me!"}
+                {isPicking ? "Picking a movie..." : "Pick a Movie For Me"}
               </button>
             )}
 
-            <div className="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
+            <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg space-y-4">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                  <span>📚</span> My Watchlist Collection
+                <h2 className="text-xl font-bold text-slate-100">
+                  My Watchlist Collection
                 </h2>
-                <span className="bg-purple-950 text-purple-300 border border-purple-800/50 px-3 py-0.5 rounded-full text-xs font-bold">
+                <span className="bg-slate-800 text-indigo-300 border border-slate-700 px-3 py-0.5 rounded-full text-xs font-bold">
                   {savedMovies.length} Saved
                 </span>
               </div>
 
               {savedMovies.length === 0 ? (
                 <div className="text-center py-24 text-slate-500 space-y-2 flex flex-col justify-center items-center">
-                  <p className="text-4xl">🍿</p>
                   <p className="text-sm">No movies saved in your collection yet.</p>
                 </div>
               ) : (
@@ -213,20 +208,20 @@ export default function MoviePickerPage() {
                   {savedMovies.map((movie: any) => (
                     <div
                       key={movie._id}
-                      className="flex items-center justify-between p-3.5 bg-slate-800/40 hover:bg-slate-800/70 rounded-xl border border-slate-700/40 transition-all group"
+                      className="flex items-center justify-between p-3.5 bg-slate-800 rounded-lg border border-slate-700 transition-colors"
                     >
                       <div className="flex items-center gap-3 overflow-hidden">
                         {movie.poster ? (
-                          <img src={movie.poster} alt={movie.title} className="w-14 h-20 object-cover rounded-lg shadow-md group-hover:scale-105 transition-transform" />
+                          <img src={movie.poster} alt={movie.title} className="w-14 h-20 object-cover rounded shadow" />
                         ) : (
-                          <div className="w-14 h-20 bg-slate-700 rounded-lg flex items-center text-[10px] text-slate-400 justify-center text-center">
+                          <div className="w-14 h-20 bg-slate-700 rounded flex items-center text-[10px] text-slate-400 justify-center text-center">
                             No Image
                           </div>
                         )}
                         <div className="overflow-hidden">
                           <h3 className="font-bold text-slate-100 text-sm truncate max-w-[200px] sm:max-w-[280px]">{movie.title}</h3>
-                          <p className="text-xs text-slate-400 mt-1">Genre: <span className="text-purple-300">{movie.genre}</span></p>
-                          <span className="inline-block mt-2 text-[10px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-full">
+                          <p className="text-xs text-slate-400 mt-1">Genre: <span className="text-indigo-300">{movie.genre}</span></p>
+                          <span className="inline-block mt-2 text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded">
                             Saved in Vault
                           </span>
                         </div>
@@ -236,9 +231,9 @@ export default function MoviePickerPage() {
                         onClick={() => handleDeleteMovie(movie._id)}
                         disabled={isPending}
                         title="Delete Movie"
-                        className="bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white p-2.5 rounded-xl border border-rose-500/20 transition-all disabled:opacity-50 ml-2"
+                        className="bg-rose-900/40 hover:bg-rose-700 text-rose-300 hover:text-white px-3 py-1.5 text-xs font-medium rounded-lg border border-rose-800 transition-colors disabled:opacity-50 ml-2"
                       >
-                        🗑️
+                        Delete
                       </button>
                     </div>
                   ))}
@@ -254,47 +249,45 @@ export default function MoviePickerPage() {
 
       {/* Random Movie Popup Modal */}
       {randomMovie && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-slate-900 border border-purple-500/30 p-6 sm:p-8 rounded-3xl max-w-md w-full shadow-2xl text-center space-y-6 relative">
+        <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-700 p-6 sm:p-8 rounded-2xl max-w-md w-full shadow-2xl text-center space-y-6 relative">
             
-            {/* Close Button */}
             <button
               onClick={() => setRandomMovie(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-all"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors text-sm font-bold"
             >
-              ✕
+              X
             </button>
 
             <div className="space-y-1">
-              <span className="text-xs uppercase tracking-widest text-pink-400 font-bold">Selected Just For You 🎉</span>
-              <h3 className="text-2xl font-black text-slate-100">{randomMovie.title}</h3>
+              <span className="text-xs uppercase tracking-widest text-indigo-400 font-bold">Selected Just For You</span>
+              <h3 className="text-2xl font-bold text-slate-100">{randomMovie.title}</h3>
             </div>
 
-            {/* Poster */}
             <div className="flex justify-center">
               {randomMovie.poster ? (
-                <img src={randomMovie.poster} alt={randomMovie.title} className="w-44 h-64 object-cover rounded-2xl shadow-2xl border border-slate-700" />
+                <img src={randomMovie.poster} alt={randomMovie.title} className="w-44 h-64 object-cover rounded-xl shadow-lg border border-slate-700" />
               ) : (
-                <div className="w-44 h-64 bg-slate-800 rounded-2xl flex items-center text-slate-500 justify-center">
+                <div className="w-44 h-64 bg-slate-800 rounded-xl flex items-center text-slate-500 justify-center">
                   No Poster Available
                 </div>
               )}
             </div>
 
-            <p className="text-sm text-slate-400">Genre: <span className="text-purple-300 font-semibold">{randomMovie.genre}</span></p>
+            <p className="text-sm text-slate-400">Genre: <span className="text-indigo-300 font-semibold">{randomMovie.genre}</span></p>
 
             <div className="flex gap-3 pt-2">
               <button
                 onClick={handlePickRandomMovie}
-                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-xl font-medium transition-all text-sm border border-slate-700"
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-lg font-medium transition-colors text-sm border border-slate-700"
               >
-                Pick Another 🎲
+                Pick Another
               </button>
               <button
                 onClick={() => setRandomMovie(null)}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-bold transition-all text-sm shadow-lg shadow-purple-600/20"
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-bold transition-colors text-sm shadow-lg"
               >
-                Let's Watch! 🍿
+                Let's Watch
               </button>
             </div>
 
