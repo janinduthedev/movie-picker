@@ -425,7 +425,7 @@ export default function MoviePickerPage() {
       {/* Movie Details Modal */}
       {selectedMovieDetail && (
         <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-50">
-          <div className={`border p-6 sm:p-8 rounded-2xl max-w-lg w-full shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto ${isDarkMode ? "bg-slate-900 border-slate-700 text-slate-100" : "bg-white border-slate-300 text-slate-900"}`}>
+          <div className={`border p-6 sm:p-8 rounded-2xl max-w-2xl w-full shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto ${isDarkMode ? "bg-slate-900 border-slate-700 text-slate-100" : "bg-white border-slate-300 text-slate-900"}`}>
             <button
               onClick={() => setSelectedMovieDetail(null)}
               className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors text-sm font-bold ${isDarkMode ? "text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700" : "text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200"}`}
@@ -433,18 +433,19 @@ export default function MoviePickerPage() {
               X
             </button>
 
-            <div className="flex gap-4 items-start">
+            <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
               {selectedMovieDetail.Poster !== "N/A" ? (
-                <img src={selectedMovieDetail.Poster} alt={selectedMovieDetail.Title} className={`w-28 h-40 object-cover rounded-xl shadow-lg border flex-shrink-0 ${isDarkMode ? "border-slate-700" : "border-slate-200"}`} />
+                <img src={selectedMovieDetail.Poster} alt={selectedMovieDetail.Title} className={`w-48 h-72 sm:w-56 sm:h-80 object-cover rounded-xl shadow-xl border flex-shrink-0 ${isDarkMode ? "border-slate-700" : "border-slate-200"}`} />
               ) : (
-                <div className={`w-28 h-40 rounded-xl flex items-center text-xs justify-center flex-shrink-0 ${isDarkMode ? "bg-slate-800 text-slate-500" : "bg-slate-100 text-slate-400"}`}>
-                  No Poster
+                <div className={`w-48 h-72 sm:w-56 sm:h-80 rounded-xl flex items-center text-sm justify-center flex-shrink-0 ${isDarkMode ? "bg-slate-800 text-slate-500" : "bg-slate-100 text-slate-400"}`}>
+                  No Poster Available
                 </div>
               )}
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold">{selectedMovieDetail.Title}</h3>
+              
+              <div className="space-y-3 flex-1 text-center sm:text-left">
+                <h3 className="text-2xl font-bold">{selectedMovieDetail.Title}</h3>
                 <p className={`text-xs ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>{selectedMovieDetail.Year} • {selectedMovieDetail.Runtime} • {selectedMovieDetail.Rated}</p>
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="flex flex-wrap gap-1.5 pt-1 justify-center sm:justify-start">
                   {selectedMovieDetail.Genre?.split(", ").map((g: string, i: number) => (
                     <span key={i} className={`text-[10px] border px-2 py-0.5 rounded ${isDarkMode ? "bg-indigo-950 text-indigo-300 border-indigo-800/50" : "bg-indigo-50 text-indigo-700 border-indigo-200"}`}>
                       {g}
@@ -452,22 +453,22 @@ export default function MoviePickerPage() {
                   ))}
                 </div>
                 {selectedMovieDetail.imdbRating && (
-                  <div className={`pt-1 text-xs font-semibold ${isDarkMode ? "text-amber-300" : "text-amber-600"}`}>
+                  <div className={`pt-1 text-sm font-semibold ${isDarkMode ? "text-amber-300" : "text-amber-600"}`}>
                     IMDb Rating: {selectedMovieDetail.imdbRating} / 10
                   </div>
                 )}
-              </div>
-            </div>
 
-            <div className={`space-y-3 text-sm border-t pt-4 ${isDarkMode ? "border-slate-800 text-slate-300" : "border-slate-200 text-slate-700"}`}>
-              <p><strong className={isDarkMode ? "text-slate-400" : "text-slate-600"}>Plot:</strong> {selectedMovieDetail.Plot}</p>
-              <p><strong className={isDarkMode ? "text-slate-400" : "text-slate-600"}>Director:</strong> {selectedMovieDetail.Director}</p>
-              <p><strong className={isDarkMode ? "text-slate-400" : "text-slate-600"}>Cast:</strong> {selectedMovieDetail.Actors}</p>
+                <div className={`space-y-2 text-sm border-t pt-3 text-left ${isDarkMode ? "border-slate-800 text-slate-300" : "border-slate-200 text-slate-700"}`}>
+                  <p><strong className={isDarkMode ? "text-slate-400" : "text-slate-600"}>Plot:</strong> {selectedMovieDetail.Plot}</p>
+                  <p><strong className={isDarkMode ? "text-slate-400" : "text-slate-600"}>Director:</strong> {selectedMovieDetail.Director}</p>
+                  <p><strong className={isDarkMode ? "text-slate-400" : "text-slate-600"}>Cast:</strong> {selectedMovieDetail.Actors}</p>
+                </div>
+              </div>
             </div>
 
             <button
               onClick={() => setSelectedMovieDetail(null)}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-bold transition-colors text-sm shadow-lg"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold transition-colors text-sm shadow-lg"
             >
               Close
             </button>
