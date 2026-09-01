@@ -171,13 +171,24 @@ export default function MoviePickerPage() {
           </div>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors border ${
+            className={`p-2.5 rounded-xl transition-colors border flex items-center justify-center ${
               isDarkMode 
-                ? "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700" 
-                : "bg-white text-slate-800 border-slate-300 hover:bg-slate-200 shadow-sm"
+                ? "bg-slate-900 text-amber-400 border-slate-800 hover:bg-slate-800" 
+                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100 shadow-sm"
             }`}
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
-            {isDarkMode ? "Light Mode" : "Dark Mode"}
+            {isDarkMode ? (
+              /* Sun Icon for Dark Mode (Click to go Light) */
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              /* Moon Icon for Light Mode (Click to go Dark) */
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
           </button>
         </div>
 
@@ -342,13 +353,17 @@ export default function MoviePickerPage() {
                       </div>
 
                       <button
-                        onClick={() => handleDeleteMovie(movie._id)}
-                        disabled={isPending}
-                        title="Delete Movie"
-                        className="bg-rose-900/40 hover:bg-rose-700 text-rose-300 hover:text-white px-3 py-1.5 text-xs font-medium rounded-lg border border-rose-800 transition-colors disabled:opacity-50 ml-2"
-                      >
-                        Delete
-                      </button>
+  onClick={() => handleDeleteMovie(movie._id)}
+  disabled={isPending}
+  title="Delete Movie"
+  className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors disabled:opacity-50 ml-2 ${
+    isDarkMode
+      ? "bg-rose-900/40 hover:bg-rose-700 text-rose-300 hover:text-white border-rose-800"
+      : "bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border-rose-200"
+  }`}
+>
+  Delete
+</button>
                     </div>
                   ))}
                 </div>
