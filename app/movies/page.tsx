@@ -9,6 +9,10 @@ export default function MoviePickerPage() {
   const [isPending, startTransition] = useTransition();
   const [loadingSearch, setLoadingSearch] = useState(false);
 
+  // Random Picker සඳහා අවශ්‍ය states
+  const [randomMovie, setRandomMovie] = useState<any | null>(null);
+  const [isPicking, setIsPicking] = useState(false);
+
   useEffect(() => {
     async function fetchSavedMovies() {
       try {
@@ -82,25 +86,38 @@ export default function MoviePickerPage() {
     });
   }
 
+  // අහඹු ලෙස මූවි එකක් තෝරන ෆන්ෂන් එක
+  function handlePickRandomMovie() {
+    if (savedMovies.length === 0) return;
+    
+    setIsPicking(true);
+    setRandomMovie(null);
+
+    // පොඩි ඇනිමේෂන් ලුක් එකක් දෙන්න ටයිමර් එකක් පාවිච්චි කරමු
+    setTimeout(() => {
+      const randomIndex = Math.floor(Math.random() * savedMovies.length);
+      setRandomMovie(savedMovies[randomIndex]);
+      setIsPicking(false);
+    }, 600);
+  }
+
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8">
+    <main className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 relative">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">
-            Movie Picker
+          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
+            🎬 CineVault Movie Picker
           </h1>
-          <p className="text-slate-400 text-sm">Search movies and manage your saved.</p>
+          <p className="text-slate-400 text-sm">Search movies from OMDb on the left and pick what to watch from your collection on the right.</p>
         </div>
 
         {/* Main Split Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Left Side: Search & Results (Span 6) */}
+          {/* Left Side: Search & Results */}
           <div className="lg:col-span-6 space-y-6">
-            
-            {/* Search Bar */}
             <form onSubmit={handleSearch} className="flex gap-3 bg-slate-900 p-2.5 rounded-2xl border border-slate-800 shadow-xl">
               <input
                 type="text"
@@ -118,10 +135,9 @@ export default function MoviePickerPage() {
               </button>
             </form>
 
-            {/* Search Results */}
             <div className="bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
               <h2 className="text-lg font-semibold text-purple-300 flex items-center gap-2">
-                <span></span> Search Results ({searchResults.length})
+                <span>⚡</span> Search Results ({searchResults.length})
               </h2>
 
               {searchResults.length === 0 ? (
@@ -161,16 +177,26 @@ export default function MoviePickerPage() {
                 </div>
               )}
             </div>
-
           </div>
 
-          {/* Right Side: Saved Movies Collection (Span 6) */}
-          <div className="lg:col-span-6">
-            <div className="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4 h-full flex flex-col">
-              
+          {/* Right Side: Saved Movies & Random Picker Button */}
+          <div className="lg:col-span-6 space-y-4">
+            
+            {/* Pick Random Movie Button */}
+            {savedMovies.length > 0 && (
+              <button
+                onClick={handlePickRandomMovie}
+                disabled={isPicking}
+                className="w-full bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-indigo-500 text-white font-bold py-3.5 px-6 rounded-2xl shadow-xl shadow-pink-600/20 transition-all flex items-center justify-center gap-2 text-base active:scale-[0.99]"
+              >
+                <span>🎲</span> {isPicking ? "Picking a movie..." : "Pick a Movie For Me!"}
+              </button>
+            )}
+
+            <div className="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                  <span></span> My Watchlist Collection
+                  <span>📚</span> My Watchlist Collection
                 </h2>
                 <span className="bg-purple-950 text-purple-300 border border-purple-800/50 px-3 py-0.5 rounded-full text-xs font-bold">
                   {savedMovies.length} Saved
@@ -178,12 +204,12 @@ export default function MoviePickerPage() {
               </div>
 
               {savedMovies.length === 0 ? (
-                <div className="text-center py-24 text-slate-500 space-y-2 flex-1 flex flex-col justify-center items-center">
+                <div className="text-center py-24 text-slate-500 space-y-2 flex flex-col justify-center items-center">
                   <p className="text-4xl">🍿</p>
                   <p className="text-sm">No movies saved in your collection yet.</p>
                 </div>
               ) : (
-                <div className="space-y-3 max-h-[530px] overflow-y-auto pr-1 flex-1">
+                <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
                   {savedMovies.map((movie: any) => (
                     <div
                       key={movie._id}
@@ -206,7 +232,6 @@ export default function MoviePickerPage() {
                         </div>
                       </div>
 
-                      {/* Delete Button */}
                       <button
                         onClick={() => handleDeleteMovie(movie._id)}
                         disabled={isPending}
@@ -219,13 +244,64 @@ export default function MoviePickerPage() {
                   ))}
                 </div>
               )}
-
             </div>
+
           </div>
 
         </div>
 
       </div>
+
+      {/* Random Movie Popup Modal */}
+      {randomMovie && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-slate-900 border border-purple-500/30 p-6 sm:p-8 rounded-3xl max-w-md w-full shadow-2xl text-center space-y-6 relative">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => setRandomMovie(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-all"
+            >
+              ✕
+            </button>
+
+            <div className="space-y-1">
+              <span className="text-xs uppercase tracking-widest text-pink-400 font-bold">Selected Just For You 🎉</span>
+              <h3 className="text-2xl font-black text-slate-100">{randomMovie.title}</h3>
+            </div>
+
+            {/* Poster */}
+            <div className="flex justify-center">
+              {randomMovie.poster ? (
+                <img src={randomMovie.poster} alt={randomMovie.title} className="w-44 h-64 object-cover rounded-2xl shadow-2xl border border-slate-700" />
+              ) : (
+                <div className="w-44 h-64 bg-slate-800 rounded-2xl flex items-center text-slate-500 justify-center">
+                  No Poster Available
+                </div>
+              )}
+            </div>
+
+            <p className="text-sm text-slate-400">Genre: <span className="text-purple-300 font-semibold">{randomMovie.genre}</span></p>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={handlePickRandomMovie}
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-xl font-medium transition-all text-sm border border-slate-700"
+              >
+                Pick Another 🎲
+              </button>
+              <button
+                onClick={() => setRandomMovie(null)}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-bold transition-all text-sm shadow-lg shadow-purple-600/20"
+              >
+                Let's Watch! 🍿
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }
