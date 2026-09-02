@@ -163,15 +163,17 @@ export default function MoviePickerPage() {
     });
   }
 
+  // Component/File: Updated MoviePickerPage with unwatch-only random filter
   function handlePickRandomMovie() {
-    if (savedMovies.length === 0) return;
+    const unwatchedMovies = savedMovies.filter((movie) => !movie.watched);
+    if (unwatchedMovies.length === 0) return;
     
     setIsPicking(true);
     setRandomMovie(null);
 
     setTimeout(() => {
-      const randomIndex = Math.floor(Math.random() * savedMovies.length);
-      setRandomMovie(savedMovies[randomIndex]);
+      const randomIndex = Math.floor(Math.random() * unwatchedMovies.length);
+      setRandomMovie(unwatchedMovies[randomIndex]);
       setIsPicking(false);
     }, 600);
   }
