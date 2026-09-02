@@ -108,6 +108,7 @@ export default function MoviePickerPage() {
             plot: details.Plot || "N/A",
             runtime: details.Runtime || "N/A",
             imdbRating: details.imdbRating || "N/A",
+            watched: false,
           }),
         });
 
@@ -136,6 +137,28 @@ export default function MoviePickerPage() {
         }
       } catch (error) {
         console.error("Delete movie error", error);
+      }
+    });
+  }
+
+  async function handleToggleWatched(id: string, currentStatus: boolean) {
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/movies`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, watched: !currentStatus }),
+        });
+
+        if (res.ok) {
+          setSavedMovies((prev) =>
+            prev.map((movie) =>
+              movie._id === id ? { ...movie, watched: !currentStatus } : movie
+            )
+          );
+        }
+      } catch (error) {
+        console.error("Toggle watched error", error);
       }
     });
   }
@@ -335,9 +358,9 @@ export default function MoviePickerPage() {
                           </div>
                         )}
                         <div className="overflow-hidden">
-                          <h3 className={`font-bold text-sm truncate max-w-[200px] sm:max-w-[280px] ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}>{movie.title}</h3>
+                          <h3 className={`font-bold text-sm truncate max-w-[180px] sm:max-w-[240px] ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}>{movie.title}</h3>
                           <p className={`text-xs mt-1 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Genre: <span className={isDarkMode ? "text-indigo-300" : "text-indigo-600"}>{movie.genre}</span></p>
-                          <div className="flex gap-2 mt-2">
+                          <div className="flex gap-2 mt-2 items-center flex-wrap">
                             {movie.imdbRating && (
                               <span className={`text-[10px] border px-2 py-0.5 rounded ${isDarkMode ? "bg-amber-950/60 text-amber-300 border-amber-800/50" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
                                 IMDb: {movie.imdbRating}
@@ -352,18 +375,37 @@ export default function MoviePickerPage() {
                         </div>
                       </div>
 
-                      <button
-  onClick={() => handleDeleteMovie(movie._id)}
-  disabled={isPending}
-  title="Delete Movie"
-  className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors disabled:opacity-50 ml-2 ${
-    isDarkMode
-      ? "bg-rose-900/40 hover:bg-rose-700 text-rose-300 hover:text-white border-rose-800"
-      : "bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border-rose-200"
-  }`}
->
-  Delete
-</button>
+                      <div className="flex items-center gap-2">
+                        {/* Watch Status Button */}
+                        <button
+                          onClick={() => handleToggleWatched(movie._id, movie.watched)}
+                          disabled={isPending}
+                          className={`px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border transition-colors disabled:opacity-50 ${
+                            movie.watched
+                              ? isDarkMode
+                                ? "bg-emerald-950 text-emerald-300 border-emerald-800 hover:bg-emerald-900"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
+                              : isDarkMode
+                              ? "bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600"
+                              : "bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300"
+                          }`}
+                        >
+                          {movie.watched ? "Watched" : "Mark Watched"}
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteMovie(movie._id)}
+                          disabled={isPending}
+                          title="Delete Movie"
+                          className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors disabled:opacity-50 ${
+                            isDarkMode
+                              ? "bg-rose-900/40 hover:bg-rose-700 text-rose-300 hover:text-white border-rose-800"
+                              : "bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border-rose-200"
+                          }`}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

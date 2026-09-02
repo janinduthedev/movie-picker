@@ -11,6 +11,8 @@ const MovieSchema = new Schema(
     plot: { type: String },
     runtime: { type: String },
     imdbRating: { type: String },
+    watched: { type: Boolean, default: false,
+    }
   },
   { timestamps: true }
 );

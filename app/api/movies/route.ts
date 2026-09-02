@@ -30,3 +30,24 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Failed to delete movie" }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    await connectDB(); // ඔයාගේ database connection function එක මෙතැන තිබිය යුතුය
+    const { id, watched } = await request.json();
+
+    const updatedMovie = await Movie.findByIdAndUpdate(
+      id,
+      { watched },
+      { new: true }
+    );
+
+    if (!updatedMovie) {
+      return NextResponse.json({ error: "Movie not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedMovie, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to update movie" }, { status: 500 });
+  }
+}
