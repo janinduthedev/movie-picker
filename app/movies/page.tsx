@@ -24,6 +24,10 @@ export default function MoviePickerPage() {
   const [selectedMovieDetail, setSelectedMovieDetail] = useState<any | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
+  // Trailer Modal State
+  const [trailerUrl, setTrailerUrl] = useState<string | null>(null);
+  const [loadingTrailer, setLoadingTrailer] = useState(false);
+
   useEffect(() => {
     async function fetchSavedMovies() {
       try {
@@ -179,6 +183,14 @@ export default function MoviePickerPage() {
   }
 
   const totalPages = Math.ceil(totalResults / 10);
+
+  // Trailer 
+  async function handleWatchTrailer(title: string, year: string) {
+    setLoadingTrailer(true);
+    const searchQuery = encodeURIComponent(`${title} ${year} official trailer`);
+    setTrailerUrl(`https://www.youtube.com/results?search_query=${searchQuery}`);
+    setLoadingTrailer(false);
+  }
 
   return (
     <main className={`min-h-screen p-4 sm:p-6 lg:p-8 relative transition-colors duration-200 ${isDarkMode ? "bg-slate-950 text-slate-100" : "bg-slate-100 text-slate-900"}`}>
@@ -516,6 +528,13 @@ export default function MoviePickerPage() {
             >
               Close
             </button>
+
+            <button
+  onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(selectedMovieDetail.Title + " " + selectedMovieDetail.Year + " trailer")}`, '_blank')}
+  className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold transition-colors text-sm shadow-lg flex items-center justify-center gap-2 mt-2"
+>
+  ▶ Watch Trailer on YouTube
+</button>
           </div>
         </div>
       )}
